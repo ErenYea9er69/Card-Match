@@ -23,8 +23,8 @@ const App: React.FC = () => {
     setCardTwo(null);
     setDisableDeck(false);
     
-    // Generate random image IDs from 1-32
-    const availableImages = Array.from({ length: 32 }, (_, i) => i + 1);
+    // Generate random image IDs from 1-23
+    const availableImages = Array.from({ length: 23 }, (_, i) => i + 1);
     const shuffledImages = availableImages.sort(() => Math.random() - 0.5);
     const selectedImages = shuffledImages.slice(0, 8);
     
@@ -158,7 +158,7 @@ const App: React.FC = () => {
                   `}
                 >
                   <img 
-                    src="/assets/img15_3.jpg" 
+                    src="/assets/img0.jpg" 
                     alt="card-back"
                     className="w-full h-full rounded-[10px]"
                   />
