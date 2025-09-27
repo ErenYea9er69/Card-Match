@@ -11,23 +11,26 @@ const Header: React.FC<HeaderProps> = ({ onNewGame }) => {
       <div
         className="
           flex items-center justify-between text-white w-full max-w-lg
-          bg-black rounded-full shadow-2xl px-6 py-3
+          bg-gray-800 bg-opacity-80 backdrop-blur-md border border-gray-600 border-opacity-40
+          rounded-full shadow-2xl px-6 py-3
         "
       >
         {/* Game Title */}
         <div className="flex items-center gap-3">
-          <video
-            src="/vd/logo.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-7 w-7 object-cover rounded-full"
-          >
-            Your browser does not support the video tag.
-          </video>
+          <div className="h-7 w-7 rounded-full bg-gray-800 bg-opacity-80 backdrop-blur-md border border-gray-600 border-opacity-40 flex items-center justify-center overflow-hidden">
+            <video
+              src="/vd/logo.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="h-6 w-6 object-cover rounded-full"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
           <span className="font-semibold text-xl">
-            MemoGame
+            MemoCard
           </span>
         </div>
 
@@ -36,20 +39,22 @@ const Header: React.FC<HeaderProps> = ({ onNewGame }) => {
           <button
             onClick={() => alert('Stats feature coming soon!')} // Placeholder action
             className="
-              px-4 py-2 text-sm font-medium bg-white/10 text-white
+              px-4 py-2 text-sm font-medium text-black
               rounded-full cursor-pointer transition-colors duration-300
-              hover:bg-white/20
+              hover:bg-gray-100 border-none
             "
+            style={{ backgroundColor: 'white' }}
           >
             Stats
           </button>
           <button
             onClick={onNewGame}
             className="
-              px-4 py-2 text-sm font-medium bg-white text-[#64042f]
+              px-4 py-2 text-sm font-medium text-black
               rounded-full cursor-pointer transition-all duration-300
-              hover:bg-gray-200 hover:scale-105 flex items-center gap-1
+              hover:bg-gray-100 hover:scale-105 flex items-center gap-1 border-none
             "
+            style={{ backgroundColor: 'white' }}
           >
             <span className="text-lg">+</span> New Game
           </button>
