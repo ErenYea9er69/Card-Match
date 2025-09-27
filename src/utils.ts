@@ -1,6 +1,6 @@
 // utils.ts - Game utility functions
 
-import { Card, HighScore, GameStats, DifficultyConfig, GameSettings } from './types';
+import type { Card, HighScore, GameStats, DifficultyConfig, GameSettings } from './types';
 
 export class GameUtils {
   // Generate shuffled cards for the game
@@ -168,10 +168,10 @@ export class GameUtils {
     func: T,
     wait: number
   ): (...args: Parameters<T>) => void {
-    let timeout: NodeJS.Timeout;
+    let timeout: number | undefined;
     return (...args: Parameters<T>) => {
       clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(null, args), wait);
+      timeout = window.setTimeout(() => func.apply(null, args), wait);
     };
   }
 
