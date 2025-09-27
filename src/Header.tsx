@@ -11,8 +11,7 @@ const Header: React.FC<HeaderProps> = ({ onNewGame }) => {
       <div
         className="
           flex items-center justify-between text-white w-full max-w-lg
-          bg-transparent backdrop-blur-md border border-gray-700 border-opacity-50 
-          rounded-full shadow-2xl px-6 py-3
+          bg-black rounded-full shadow-2xl px-6 py-3
         "
       >
         {/* Game Title */}
