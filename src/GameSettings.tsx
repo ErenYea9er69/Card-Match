@@ -272,7 +272,7 @@ const GameSettings: React.FC = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .slider {
           background: linear-gradient(to right, #8b5cf6 0%, #06b6d4 100%);
         }
