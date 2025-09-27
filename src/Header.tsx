@@ -20,7 +20,8 @@ const Header: React.FC<HeaderProps> = ({ onNewGame }) => {
         "
         style={{
           background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.8) 0%, rgba(126, 34, 206, 0.8) 25%, rgba(124, 58, 237, 0.8) 50%, rgba(99, 102, 241, 0.8) 75%, rgba(139, 92, 246, 0.8) 100%)',
-          animation: 'gradientShift 8s ease-in-out infinite, fadeInDown 1s ease-out'
+          animation: 'gradientShift 12s cubic-bezier(0.4, 0, 0.2, 1) infinite, fadeInDown 1s ease-out',
+          backgroundSize: '400% 400%'
         }}
       >
         {/* Game Title */}
@@ -77,17 +78,20 @@ const Header: React.FC<HeaderProps> = ({ onNewGame }) => {
 
       <style>{`
         @keyframes gradientShift {
-          0%, 100% { 
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.8) 0%, rgba(126, 34, 206, 0.8) 25%, rgba(124, 58, 237, 0.8) 50%, rgba(99, 102, 241, 0.8) 75%, rgba(139, 92, 246, 0.8) 100%);
+          0% { 
+            background-position: 0% 50%;
           }
           25% { 
-            background: linear-gradient(135deg, rgba(126, 34, 206, 0.8) 0%, rgba(124, 58, 237, 0.8) 25%, rgba(99, 102, 241, 0.8) 50%, rgba(139, 92, 246, 0.8) 75%, rgba(147, 51, 234, 0.8) 100%);
+            background-position: 100% 0%;
           }
           50% { 
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.8) 0%, rgba(99, 102, 241, 0.8) 25%, rgba(139, 92, 246, 0.8) 50%, rgba(147, 51, 234, 0.8) 75%, rgba(126, 34, 206, 0.8) 100%);
+            background-position: 100% 100%;
           }
           75% { 
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(139, 92, 246, 0.8) 25%, rgba(147, 51, 234, 0.8) 50%, rgba(126, 34, 206, 0.8) 75%, rgba(124, 58, 237, 0.8) 100%);
+            background-position: 0% 100%;
+          }
+          100% { 
+            background-position: 0% 50%;
           }
         }
         
