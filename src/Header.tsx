@@ -11,13 +11,13 @@ const Header: React.FC<HeaderProps> = ({ onNewGame }) => {
       <div
         className="
           flex items-center justify-between text-white w-full max-w-lg
-          bg-gray-800 bg-opacity-80 backdrop-blur-md border border-gray-600 border-opacity-40
+          bg-purple-800 bg-opacity-80 backdrop-blur-md border border-purple-400 border-opacity-40
           rounded-full shadow-2xl px-6 py-3
         "
       >
         {/* Game Title */}
         <div className="flex items-center gap-3">
-          <div className="h-7 w-7 rounded-full bg-gray-800 bg-opacity-80 backdrop-blur-md border border-gray-600 border-opacity-40 flex items-center justify-center overflow-hidden">
+          <div className="h-7 w-7 rounded-full bg-purple-700 bg-opacity-80 backdrop-blur-md border border-purple-400 border-opacity-40 flex items-center justify-center overflow-hidden">
             <video
               src="/vd/logo.mp4"
               autoPlay
