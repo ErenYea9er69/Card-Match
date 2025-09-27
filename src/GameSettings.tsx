@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Volume2, VolumeX, Clock, MousePointer, RotateCcw, Palette } from 'lucide-react';
 import { useGame } from './GameContext';
-import { GameSettings as GameSettingsType } from './types';
+import type { GameSettings as GameSettingsType } from './types';
 
 const GameSettings: React.FC = () => {
   const { state, actions } = useGame();
