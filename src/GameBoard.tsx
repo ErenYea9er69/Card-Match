@@ -177,7 +177,7 @@ const GameBoard: React.FC = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes shake {
           0% { transform: translateX(0) translateY(0); }
           25% { transform: translateX(-3px) translateY(-1px); }
