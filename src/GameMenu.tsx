@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Play, Trophy, Settings, Star, Clock, MousePointer } from 'lucide-react';
 import { useGame } from './GameContext';
-import { DifficultyLevel, DIFFICULTY_CONFIGS } from './types';
+import { type DifficultyLevel, DIFFICULTY_CONFIGS } from './types';
 import { GameUtils } from './utils';
 
 const GameMenu: React.FC = () => {

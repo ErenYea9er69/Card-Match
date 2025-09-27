@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { 
+import type { 
   GameState, 
   GameStats, 
   GameSettings, 
   HighScore, 
   Card, 
   DifficultyLevel, 
-  DifficultyConfig,
+  DifficultyConfig
+} from './types';
+import {
   DIFFICULTY_CONFIGS,
   DEFAULT_SETTINGS,
   INITIAL_GAME_STATS 
@@ -285,16 +287,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number | undefined;
     
     if (state.gameState === 'playing' && !state.gameStats.isPaused) {
-      interval = setInterval(() => {
+      interval = window.setInterval(() => {
         dispatch({ type: 'UPDATE_TIME' });
       }, 1000);
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) window.clearInterval(interval);
     };
   }, [state.gameState, state.gameStats.isPaused]);
 
