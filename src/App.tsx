@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Header from './header'; // Import the new Header component
 
 interface Card {
   id: number;
@@ -67,7 +68,9 @@ const App: React.FC = () => {
     
     // Check for match after state updates
     setTimeout(() => {
-      matchCards(cardOne, clickedCard);
+      if(cardOne) { // Added a null check for cardOne
+          matchCards(cardOne, clickedCard);
+      }
     }, 0);
   };
 
@@ -134,6 +137,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-[rgb(36,2,21)]">
+      <Header onNewGame={resetGame} />
       {!showResetPage ? (
         <div className="h-[700px] w-[700px] rounded-[10px] bg-[rgb(217,242,242)] p-[21px]">
           <div className="h-full w-full flex flex-wrap justify-center gap-[10px]">
