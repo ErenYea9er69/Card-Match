@@ -17,11 +17,16 @@ const Header: React.FC<HeaderProps> = ({ onNewGame }) => {
       >
         {/* Game Title */}
         <div className="flex items-center gap-3">
-          <img
-            src="/assets/logo.png" // Assuming you have a logo, or you can remove this
-            alt="MemoGame Logo"
-            className="h-7 w-7 object-contain brightness-0 invert"
-          />
+          <video
+            src="/vd/logo.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-7 w-7 object-cover rounded-full"
+          >
+            Your browser does not support the video tag.
+          </video>
           <span className="font-semibold text-xl">
             MemoGame
           </span>
