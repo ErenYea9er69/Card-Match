@@ -1,4 +1,75 @@
-import type { Card, Difficulty, GAME_CONFIG } from '../types/gameTypes';
+import type { Card, Difficulty } from '../types/gameTypes';
+
+export const GAME_CONFIG = {
+  difficulties: {
+    easy: { pairs: 6, grid: { cols: 4, rows: 3 } },
+    medium: { pairs: 8, grid: { cols: 4, rows: 4 } },
+    hard: { pairs: 12, grid: { cols: 6, rows: 4 } }
+  },
+  
+  scoring: {
+    baseMatch: 100,
+    timeBonus: 2,
+    moveBonus: 50,
+    completionBonus: 1000,
+    difficultyMultiplier: {
+      easy: 1,
+      medium: 1.5,
+      hard: 2
+    }
+  },
+  
+  powerUps: [
+    { id: 'reveal', name: 'Reveal All', type: 'reveal' as const, uses: 3 },
+    { id: 'shuffle', name: 'Shuffle', type: 'shuffle' as const, uses: 2 },
+    { id: 'hint', name: 'Hint', type: 'hint' as const, uses: 5 }
+  ],
+  
+  achievements: [
+    {
+      id: 'first_match',
+      title: 'First Match!',
+      description: 'You found your first pair!',
+      icon: '🎯',
+      unlocked: false
+    },
+    {
+      id: 'speed_demon',
+      title: 'Speed Demon!',
+      description: 'Completed in under 30 seconds!',
+      icon: '⚡',
+      unlocked: false
+    },
+    {
+      id: 'perfect_game',
+      title: 'Perfect Game!',
+      description: 'Completed with no mistakes!',
+      icon: '💎',
+      unlocked: false
+    },
+    {
+      id: 'marathon',
+      title: 'Marathon Runner!',
+      description: 'Played 10 games',
+      icon: '🏃',
+      unlocked: false
+    },
+    {
+      id: 'master',
+      title: 'Memory Master!',
+      description: 'Won on hard difficulty',
+      icon: '🧠',
+      unlocked: false
+    },
+    {
+      id: 'collector',
+      title: 'Achievement Collector!',
+      description: 'Unlocked 5 achievements',
+      icon: '🏅',
+      unlocked: false
+    }
+  ]
+};
 
 export const generateCards = (difficulty: Difficulty): Card[] => {
   const config = GAME_CONFIG.difficulties[difficulty];
@@ -152,10 +223,10 @@ export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout;
+  let timeout: number;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+    timeout = window.setTimeout(() => func(...args), wait);
   };
 };
 

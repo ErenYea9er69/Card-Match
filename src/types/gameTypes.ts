@@ -96,9 +96,11 @@ export interface GameStore {
 export interface SoundStore {
   musicVolume: number;
   sfxVolume: number;
+  isMusicPlaying: boolean;
   
   setMusicVolume: (volume: number) => void;
   setSfxVolume: (volume: number) => void;
+  setIsMusicPlaying: (playing: boolean) => void;
   
   playSound: (soundType: string) => void;
   playBackgroundMusic: () => void;

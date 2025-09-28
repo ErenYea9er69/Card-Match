@@ -1,96 +1,85 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { 
-  GameStore, 
-  GameState, 
-  Card, 
-  Achievement, 
-  PowerUp, 
-  BestScores,
-  Difficulty,
-  Theme,
-  GAME_CONFIG 
-} from '../types/gameTypes';
 
-export const useGameStore = create<GameStore>()(
-  persist(
-    (set, get) => ({
-      // Game State
-      cards: [],
-      gameState: 'ready' as GameState,
-      moves: 0,
-      time: 0,
-      score: 0,
-      matchedPairs: 0,
-      selectedCards: [],
+interface SoundStore {
+  musicVolume: number;
+  sfxVolume: number;
+  isMusicPlaying: boolean;
+  
+  setMusicVolume: (volume: number) => void;
+  setSfxVolume: (volume: number) => void;
+  setIsMusicPlaying: (playing: boolean) => void;
+  
+  playSound: (soundType: string) => void;
+  playBackgroundMusic: () => void;
+  stopBackgroundMusic: () => void;
+}
+
+// Mock sound system - in a real app, you'd use Web Audio API or a library like Howler.js
+const createMockAudio = () => ({
+  play: () => {},
+  pause: () => {},
+  volume: 1,
+  loop: false
+});
+
+export const useSoundStore = create<SoundStore>((set, get) => ({
+  musicVolume: 50,
+  sfxVolume: 70,
+  isMusicPlaying: false,
+
+  setMusicVolume: (musicVolume: number) => set({ musicVolume }),
+  setSfxVolume: (sfxVolume: number) => set({ sfxVolume }),
+  setIsMusicPlaying: (isMusicPlaying: boolean) => set({ isMusicPlaying }),
+
+  playSound: (soundType: string) => {
+    const { sfxVolume } = get();
+    // In a real implementation, you would play the actual sound file
+    console.log(`Playing sound: ${soundType} at volume: ${sfxVolume}%`);
+    
+    // Mock sound playing - in production, use actual audio files
+    try {
+      // Create a simple beep sound for demonstration
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
       
-      // Settings
-      difficulty: 'medium' as Difficulty,
-      soundEnabled: true,
-      theme: 'dark' as Theme,
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
       
-      // Progress
-      bestScores: {} as BestScores,
-      achievements: [] as Achievement[],
-      powerUps: [] as PowerUp[],
-
-      // Actions
-      setCards: (cards: Card[]) => set({ cards }),
-      setGameState: (gameState: GameState) => set({ gameState }),
-      setMoves: (moves: number | ((prev: number) => number)) => 
-        set((state) => ({ moves: typeof moves === 'function' ? moves(state.moves) : moves })),
-      setTime: (time: number | ((prev: number) => number)) => 
-        set((state) => ({ time: typeof time === 'function' ? time(state.time) : time })),
-      setScore: (score: number | ((prev: number) => number)) => 
-        set((state) => ({ score: typeof score === 'function' ? score(state.score) : score })),
-      setMatchedPairs: (matchedPairs: number | ((prev: number) => number)) => 
-        set((state) => ({ matchedPairs: typeof matchedPairs === 'function' ? matchedPairs(state.matchedPairs) : matchedPairs })),
-      setSelectedCards: (selectedCards: Card[]) => set({ selectedCards }),
-
-      setDifficulty: (difficulty: Difficulty) => set({ difficulty }),
-      setSoundEnabled: (soundEnabled: boolean) => set({ soundEnabled }),
-      setTheme: (theme: Theme) => set({ theme }),
-
-      setBestScores: (bestScores: BestScores) => set({ bestScores }),
-      setAchievements: (achievements: Achievement[]) => set({ achievements }),
-      setPowerUps: (powerUps: PowerUp[]) => set({ powerUps }),
-
-      resetGame: () => {
-        set({
-          cards: [],
-          gameState: 'ready' as GameState,
-          moves: 0,
-          time: 0,
-          score: 0,
-          matchedPairs: 0,
-          selectedCards: []
-        });
-      },
-
-      initializeAchievements: () => {
-        const state = get();
-        if (state.achievements.length === 0) {
-          set({ achievements: GAME_CONFIG.achievements });
-        }
-      },
-
-      initializePowerUps: () => {
-        const state = get();
-        if (state.powerUps.length === 0) {
-          set({ powerUps: GAME_CONFIG.powerUps });
-        }
-      }
-    }),
-    {
-      name: 'memocard-game-storage',
-      partialize: (state) => ({
-        bestScores: state.bestScores,
-        achievements: state.achievements,
-        powerUps: state.powerUps,
-        difficulty: state.difficulty,
-        soundEnabled: state.soundEnabled,
-        theme: state.theme
-      })
+      // Different frequencies for different sound types
+      const frequencies: { [key: string]: number } = {
+        flip: 400,
+        match: 600,
+        mismatch: 200,
+        win: 800,
+        powerup: 500,
+        achievement: 700,
+        shuffle: 300
+      };
+      
+      oscillator.frequency.setValueAtTime(frequencies[soundType] || 400, audioContext.currentTime);
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime((sfxVolume / 100) * 0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Audio not available in this environment');
     }
-  )
-);
+  },
+
+  playBackgroundMusic: () => {
+    const { musicVolume } = get();
+    set({ isMusicPlaying: true });
+    console.log(`Playing background music at volume: ${musicVolume}%`);
+    // In a real implementation, you would start playing the background music
+  },
+
+  stopBackgroundMusic: () => {
+    set({ isMusicPlaying: false });
+    console.log('Stopping background music');
+    // In a real implementation, you would stop the background music
+  }
+}));

@@ -10,7 +10,9 @@ import { useGameStore } from './store/gameStore';
 import { useSoundStore } from './store/soundStore';
 import { generateCards, calculateScore } from './utils/gameUtils';
 
-import type { Card, GameState, PowerUp, Achievement } from './types/gameTypes';
+import type { Card, Achievement } from './types/gameTypes';
+
+type GameState = 'ready' | 'playing' | 'won';
 
 const App: React.FC = () => {
   const { 
@@ -44,13 +46,13 @@ const App: React.FC = () => {
   const [showWinModal, setShowWinModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const gameTimerRef = useRef<number | null>(null);
+  const processingTimeoutRef = useRef<number | null>(null);
 
   // Game timer effect
   useEffect(() => {
     if (gameState === 'playing' && !gameTimerRef.current) {
-      gameTimerRef.current = setInterval(() => {
+      gameTimerRef.current = window.setInterval(() => {
         setTime(prev => prev + 1);
       }, 1000);
     } else if (gameState !== 'playing' && gameTimerRef.current) {
@@ -134,7 +136,7 @@ const App: React.FC = () => {
 
       const [firstCard, secondCard] = newSelectedCards;
 
-      processingTimeoutRef.current = setTimeout(() => {
+      processingTimeoutRef.current = window.setTimeout(() => {
         if (firstCard.imageId === secondCard.imageId) {
           // Match found
           handleMatch(updatedCards, firstCard, secondCard);
@@ -314,7 +316,7 @@ const App: React.FC = () => {
         // Highlight a matching pair
         const unmatched = cards.filter(c => !c.isMatched && !c.isFlipped);
         if (unmatched.length >= 2) {
-          const pairs = {};
+          const pairs: { [key: number]: Card[] } = {};
           unmatched.forEach(card => {
             if (!pairs[card.imageId]) pairs[card.imageId] = [];
             pairs[card.imageId].push(card);
@@ -323,7 +325,7 @@ const App: React.FC = () => {
           const matchingPair = Object.values(pairs).find(pair => pair.length === 2);
           if (matchingPair) {
             const hintCards = cards.map(c => {
-              if (matchingPair.some(p => p.id === c.id)) {
+              if (matchingPair.some((p: Card) => p.id === c.id)) {
                 return { ...c, isHint: true };
               }
               return c;
