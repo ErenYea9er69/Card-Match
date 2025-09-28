@@ -1,316 +1,440 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from './Header';
 import StatsModal from './StatsModal';
 import SettingsModal from './SettingsModal';
+import GameBoard from './GameBoard';
+import WinModal from './WinModal';
+import PowerUpSystem from './PowerUpSystem';
+import AchievementSystem from './AchievementSystem';
+import { useGameStore } from './store/gameStore';
+import { useSoundStore } from './store/soundStore';
+import { generateCards, calculateScore } from './utils/gameUtils';
 
-interface Card {
-  id: number;
-  imageId: number;
-  isFlipped: boolean;
-  isMatched: boolean;
-  isShaking: boolean;
-}
+import type { Card, GameState, PowerUp, Achievement } from './types/gameTypes';
 
 const App: React.FC = () => {
-  const [cards, setCards] = useState<Card[]>([]);
-  const [cardOne, setCardOne] = useState<Card | null>(null);
-  const [cardTwo, setCardTwo] = useState<Card | null>(null);
-  const [disableDeck, setDisableDeck] = useState<boolean>(false);
-  const [matchedCards, setMatchedCards] = useState<number>(0);
-  const [showResetPage, setShowResetPage] = useState<boolean>(false);
-  const [moves, setMoves] = useState<number>(0);
-  const [time, setTime] = useState<number>(0);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
-  const [bestScores, setBestScores] = useState<{ [key: number]: number }>({});
-  const [showStats, setShowStats] = useState<boolean>(false);
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const { 
+    cards, 
+    setCards, 
+    gameState, 
+    setGameState, 
+    moves, 
+    setMoves, 
+    time, 
+    setTime,
+    difficulty,
+    soundEnabled,
+    bestScores,
+    setBestScores,
+    achievements,
+    setAchievements,
+    powerUps,
+    setPowerUps,
+    selectedCards,
+    setSelectedCards,
+    matchedPairs,
+    setMatchedPairs,
+    score,
+    setScore
+  } = useGameStore();
 
-  // Timer effect
+  const { playSound, playBackgroundMusic, stopBackgroundMusic } = useSoundStore();
+  const [showStats, setShowStats] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showWinModal, setShowWinModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Game timer effect
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isTimerRunning) {
-      timer = setInterval(() => {
+    if (gameState === 'playing' && !gameTimerRef.current) {
+      gameTimerRef.current = setInterval(() => {
         setTime(prev => prev + 1);
       }, 1000);
+    } else if (gameState !== 'playing' && gameTimerRef.current) {
+      clearInterval(gameTimerRef.current);
+      gameTimerRef.current = null;
     }
-    return () => clearInterval(timer);
-  }, [isTimerRunning]);
 
-  // Calculate number of card pairs based on difficulty
-  const getCardCount = useCallback((): number => {
-    switch (difficulty) {
-      case 'easy': return 6; // 6 pairs (12 cards)
-      case 'medium': return 8; // 8 pairs (16 cards)
-      case 'hard': return 10; // 10 pairs (20 cards)
-      default: return 8;
+    return () => {
+      if (gameTimerRef.current) {
+        clearInterval(gameTimerRef.current);
+      }
+    };
+  }, [gameState, setTime]);
+
+  // Background music effect
+  useEffect(() => {
+    if (soundEnabled) {
+      playBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
     }
-  }, [difficulty]);
 
-  // Initialize and shuffle cards
-  const shuffleCards = useCallback((): void => {
-    setMatchedCards(0);
-    setCardOne(null);
-    setCardTwo(null);
-    setDisableDeck(false);
+    return () => stopBackgroundMusic();
+  }, [soundEnabled, playBackgroundMusic, stopBackgroundMusic]);
+
+  // Initialize new game
+  const initializeGame = useCallback(() => {
+    setGameState('playing');
     setMoves(0);
     setTime(0);
-    setIsTimerRunning(false);
-    setShowResetPage(false);
+    setMatchedPairs(0);
+    setScore(0);
+    setSelectedCards([]);
+    setIsProcessing(false);
     
-    const cardCount = getCardCount();
-    
-    // Generate random image IDs
-    const availableImages = Array.from({ length: 23 }, (_, i) => i + 1);
-    const shuffledImages = availableImages.sort(() => Math.random() - 0.5);
-    const selectedImages = shuffledImages.slice(0, cardCount);
-    
-    // Create pairs and shuffle them
-    const cardPairs = [...selectedImages, ...selectedImages];
-    const shuffledPairs = cardPairs.sort(() => Math.random() - 0.5);
-    
-    const newCards: Card[] = shuffledPairs.map((imageId, index) => ({
-      id: index,
-      imageId,
-      isFlipped: false,
-      isMatched: false,
-      isShaking: false
-    }));
-    
-    setCards(newCards);
-  }, [getCardCount]);
-
-  // Handle card flip
-  const flipCard = (clickedCard: Card): void => {
-    if (disableDeck || clickedCard.isMatched || clickedCard.isFlipped) return;
-    
-    // Start timer on first move
-    if (!isTimerRunning) {
-      setIsTimerRunning(true);
+    // Stop any pending processing
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current);
     }
-    
-    setCards(prevCards => 
-      prevCards.map(card => 
-        card.id === clickedCard.id 
-          ? { ...card, isFlipped: true }
-          : card
-      )
-    );
 
-    if (!cardOne) {
-      setCardOne(clickedCard);
+    // Generate and shuffle cards based on difficulty
+    const newCards = generateCards(difficulty);
+    setCards(newCards);
+    
+    // Play shuffle sound
+    if (soundEnabled) {
+      playSound('shuffle');
+    }
+  }, [difficulty, soundEnabled, playSound, setCards, setGameState, setMoves, setTime, setMatchedPairs, setScore, setSelectedCards]);
+
+  // Handle card selection
+  const handleCardSelect = useCallback((card: Card) => {
+    if (gameState !== 'playing' || isProcessing || card.isFlipped || card.isMatched) {
       return;
     }
 
-    setCardTwo(clickedCard);
-    setDisableDeck(true);
-    setMoves(prev => prev + 1);
+    // Start game timer on first move
+    if (moves === 0 && selectedCards.length === 0) {
+      setGameState('playing');
+    }
+
+    // Flip the card
+    const updatedCards = cards.map(c => 
+      c.id === card.id ? { ...c, isFlipped: true } : c
+    );
+    setCards(updatedCards);
+
+    // Add to selected cards
+    const newSelectedCards = [...selectedCards, card];
+    setSelectedCards(newSelectedCards);
+
+    // Play flip sound
+    if (soundEnabled) {
+      playSound('flip');
+    }
+
+    // Check for match when two cards are selected
+    if (newSelectedCards.length === 2) {
+      setIsProcessing(true);
+      setMoves(prev => prev + 1);
+
+      const [firstCard, secondCard] = newSelectedCards;
+
+      processingTimeoutRef.current = setTimeout(() => {
+        if (firstCard.imageId === secondCard.imageId) {
+          // Match found
+          handleMatch(updatedCards, firstCard, secondCard);
+        } else {
+          // No match
+          handleMismatch(updatedCards, firstCard, secondCard);
+        }
+      }, 1000);
+    }
+  }, [cards, selectedCards, gameState, isProcessing, moves, soundEnabled, playSound, setCards, setSelectedCards, setMoves]);
+
+  // Handle matching cards
+  const handleMatch = useCallback((updatedCards: Card[], firstCard: Card, secondCard: Card) => {
+    const matchedCards = updatedCards.map(c => 
+      c.id === firstCard.id || c.id === secondCard.id 
+        ? { ...c, isMatched: true, isFlipped: true }
+        : c
+    );
     
-    // Check for match after state updates
+    setCards(matchedCards);
+    setSelectedCards([]);
+    setIsProcessing(false);
+    
+    const newMatchedPairs = matchedPairs + 1;
+    setMatchedPairs(newMatchedPairs);
+    
+    // Calculate and add score
+    const matchScore = calculateScore('match', difficulty, time, moves);
+    setScore(prev => prev + matchScore);
+    
+    // Play match sound
+    if (soundEnabled) {
+      playSound('match');
+    }
+
+    // Check for achievements
+    checkAchievements(newMatchedPairs, moves + 1, time);
+
+    // Check if game is won
+    const totalPairs = getTotalPairs(difficulty);
+    if (newMatchedPairs >= totalPairs) {
+      handleGameWon();
+    }
+  }, [matchedPairs, difficulty, time, moves, soundEnabled, playSound, setCards, setSelectedCards, setMatchedPairs, setScore]);
+
+  // Handle mismatching cards
+  const handleMismatch = useCallback((updatedCards: Card[], firstCard: Card, secondCard: Card) => {
+    const resetCards = updatedCards.map(c => 
+      c.id === firstCard.id || c.id === secondCard.id 
+        ? { ...c, isFlipped: false }
+        : c
+    );
+    
+    setCards(resetCards);
+    setSelectedCards([]);
+    setIsProcessing(false);
+    
+    // Play mismatch sound
+    if (soundEnabled) {
+      playSound('mismatch');
+    }
+  }, [soundEnabled, playSound, setCards, setSelectedCards]);
+
+  // Handle game won
+  const handleGameWon = useCallback(() => {
+    setGameState('won');
+    const finalScore = calculateScore('completion', difficulty, time, moves);
+    setScore(finalScore);
+    
+    // Play win sound
+    if (soundEnabled) {
+      playSound('win');
+    }
+    
+    // Update best scores
+    const currentBest = bestScores[difficulty] || Infinity;
+    if (moves < currentBest) {
+      setBestScores({ ...bestScores, [difficulty]: moves });
+    }
+    
+    // Show win modal after a delay
     setTimeout(() => {
-      if(cardOne) {
-        matchCards(cardOne, clickedCard);
-      }
-    }, 0);
-  };
+      setShowWinModal(true);
+    }, 1500);
+  }, [difficulty, time, moves, soundEnabled, playSound, bestScores, setGameState, setScore, setBestScores, setShowWinModal]);
 
-  // Match cards logic
-  const matchCards = (firstCard: Card, secondCard: Card): void => {
-    if (firstCard.imageId === secondCard.imageId) {
-      setMatchedCards(prev => prev + 1);
-      
-      setCards(prevCards => 
-        prevCards.map(card => 
-          card.id === firstCard.id || card.id === secondCard.id
-            ? { ...card, isMatched: true }
-            : card
-        )
-      );
-      
-      setCardOne(null);
-      setCardTwo(null);
-      setDisableDeck(false);
-      
-      // Check if all cards are matched
-      if (matchedCards + 1 === getCardCount()) {
-        setTimeout(() => {
-          setIsTimerRunning(false);
-          setShowResetPage(true);
-          // Update best score if needed
-          const currentLevel = getCardCount();
-          if (!bestScores[currentLevel] || moves + 1 < bestScores[currentLevel]) {
-            setBestScores(prev => ({
-              ...prev,
-              [currentLevel]: moves + 1
-            }));
-          }
-        }, 500);
+  // Check for achievements
+  const checkAchievements = useCallback((currentPairs: number, currentMoves: number, currentTime: number) => {
+    const newAchievements: Achievement[] = [];
+    
+    // First match achievement
+    if (currentPairs === 1 && !achievements.find(a => a.id === 'first_match')) {
+      newAchievements.push({
+        id: 'first_match',
+        title: 'First Match!',
+        description: 'You found your first pair!',
+        icon: '🎯',
+        unlocked: true
+      });
+    }
+    
+    // Speed achievements
+    if (currentTime <= 30 && currentPairs >= getTotalPairs(difficulty) && !achievements.find(a => a.id === 'speed_demon')) {
+      newAchievements.push({
+        id: 'speed_demon',
+        title: 'Speed Demon!',
+        description: 'Completed in under 30 seconds!',
+        icon: '⚡',
+        unlocked: true
+      });
+    }
+    
+    // Perfect game achievement
+    if (currentMoves === getTotalPairs(difficulty) && !achievements.find(a => a.id === 'perfect_game')) {
+      newAchievements.push({
+        id: 'perfect_game',
+        title: 'Perfect Game!',
+        description: 'Completed with no mistakes!',
+        icon: '💎',
+        unlocked: true
+      });
+    }
+    
+    if (newAchievements.length > 0) {
+      setAchievements([...achievements, ...newAchievements]);
+      if (soundEnabled) {
+        playSound('achievement');
       }
-    } else {
-      // Show shake animation
-      setTimeout(() => {
-        setCards(prevCards => 
-          prevCards.map(card => 
-            card.id === firstCard.id || card.id === secondCard.id
-              ? { ...card, isShaking: true }
-              : card
-          )
-        );
-      }, 300);
+    }
+  }, [difficulty, achievements, soundEnabled, playSound, setAchievements]);
 
-      // Remove flip and shake after animation
-      setTimeout(() => {
-        setCards(prevCards => 
-          prevCards.map(card => 
-            card.id === firstCard.id || card.id === secondCard.id
-              ? { ...card, isFlipped: false, isShaking: false }
-              : card
-          )
-        );
-        
-        setCardOne(null);
-        setCardTwo(null);
-        setDisableDeck(false);
-      }, 800);
+  // Get total pairs for difficulty
+  const getTotalPairs = (diff: 'easy' | 'medium' | 'hard'): number => {
+    switch (diff) {
+      case 'easy': return 6;
+      case 'medium': return 8;
+      case 'hard': return 12;
+      default: return 8;
     }
   };
 
+  // Use power-up
+  const usePowerUp = useCallback((powerUpId: string) => {
+    const powerUp = powerUps.find(p => p.id === powerUpId && p.uses > 0);
+    if (!powerUp || isProcessing) return;
+
+    // Decrease uses
+    setPowerUps(powerUps.map(p => 
+      p.id === powerUpId ? { ...p, uses: p.uses - 1 } : p
+    ));
+
+    // Apply power-up effect
+    switch (powerUpId) {
+      case 'reveal':
+        // Reveal all cards briefly
+        const revealedCards = cards.map(c => ({ ...c, isFlipped: true }));
+        setCards(revealedCards);
+        setTimeout(() => {
+          const hiddenCards = cards.map(c => ({ 
+            ...c, 
+            isFlipped: c.isMatched ? true : false 
+          }));
+          setCards(hiddenCards);
+        }, 2000);
+        break;
+        
+      case 'shuffle':
+        // Shuffle unmatched cards
+        const unmatchedCards = cards.filter(c => !c.isMatched);
+        const matchedCards = cards.filter(c => c.isMatched);
+        const shuffledUnmatched = [...unmatchedCards].sort(() => Math.random() - 0.5);
+        const newShuffledCards = [...matchedCards, ...shuffledUnmatched];
+        setCards(newShuffledCards);
+        break;
+        
+      case 'hint':
+        // Highlight a matching pair
+        const unmatched = cards.filter(c => !c.isMatched && !c.isFlipped);
+        if (unmatched.length >= 2) {
+          const pairs = {};
+          unmatched.forEach(card => {
+            if (!pairs[card.imageId]) pairs[card.imageId] = [];
+            pairs[card.imageId].push(card);
+          });
+          
+          const matchingPair = Object.values(pairs).find(pair => pair.length === 2);
+          if (matchingPair) {
+            const hintCards = cards.map(c => {
+              if (matchingPair.some(p => p.id === c.id)) {
+                return { ...c, isHint: true };
+              }
+              return c;
+            });
+            setCards(hintCards);
+            setTimeout(() => {
+              const clearHints = cards.map(c => ({ ...c, isHint: false }));
+              setCards(clearHints);
+            }, 3000);
+          }
+        }
+        break;
+    }
+
+    // Play power-up sound
+    if (soundEnabled) {
+      playSound('powerup');
+    }
+  }, [cards, powerUps, isProcessing, soundEnabled, playSound, setCards, setPowerUps]);
+
   // Reset game
-  const resetGame = (): void => {
-    shuffleCards();
-  };
+  const resetGame = useCallback(() => {
+    setShowWinModal(false);
+    initializeGame();
+  }, [initializeGame, setShowWinModal]);
 
-  // Initialize game on component mount
+  // Cleanup on unmount
   useEffect(() => {
-    shuffleCards();
-  }, [shuffleCards]);
-
-  // Format time for display
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+    return () => {
+      if (gameTimerRef.current) {
+        clearInterval(gameTimerRef.current);
+      }
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current);
+      }
+      stopBackgroundMusic();
+    };
+  }, [stopBackgroundMusic]);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-[rgb(36,2,21)]">
-      <Header 
-        onNewGame={resetGame} 
-        onStatsClick={() => setShowStats(true)}
-        onSettingsClick={() => setShowSettings(true)}
-        moves={moves} 
-        time={time}
-        bestScore={bestScores[getCardCount()]}
-      />
-      
-      {!showResetPage ? (
-        <div className="h-[700px] w-[700px] rounded-[10px] bg-[rgb(217,242,242)] p-[21px] mt-20">
-          <div className="h-full w-full flex flex-wrap justify-center gap-[10px]">
-            {cards.map((card) => (
-              <div
-                key={card.id}
-                className={`
-                  relative w-[150px] h-[150px] cursor-pointer
-                  transition-transform duration-[250ms] ease-linear
-                  [perspective:800px] [transform-style:preserve-3d]
-                  ${card.isShaking ? 'animate-[shake_0.35s_ease-in]' : ''}
-                `}
-                onClick={() => flipCard(card)}
-              >
-                {/* Front view */}
-                <div 
-                  className={`
-                    absolute w-full h-full [backface-visibility:hidden]
-                    transition-transform duration-[220ms] ease-linear
-                    select-none pointer-events-none
-                    ${card.isFlipped ? 'rotate-y-180' : ''}
-                  `}
-                >
-                  <img 
-                    src="/assets/img0.jpg" 
-                    alt="card-back"
-                    className="w-full h-full rounded-[10px]"
-                  />
-                </div>
-                
-                {/* Back view */}
-                <div 
-                  className={`
-                    absolute w-full h-full [backface-visibility:hidden]
-                    transition-transform duration-[220ms] ease-linear
-                    select-none pointer-events-none rotate-y-[-180deg]
-                    ${card.isFlipped ? 'rotate-y-0' : ''}
-                  `}
-                >
-                  <img 
-                    src={`/assets/img${card.imageId}.jpg`}
-                    alt="card-img"
-                    className="w-full h-full rounded-[10px]"
-                  />
-                </div>
-              </div>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden">
+      {/* Animated background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <div className="relative z-10">
+        {/* Header */}
+        <Header
+          onNewGame={initializeGame}
+          onStatsClick={() => setShowStats(true)}
+          onSettingsClick={() => setShowSettings(true)}
+          moves={moves}
+          time={time}
+          score={score}
+          bestScore={bestScores[difficulty]}
+          gameState={gameState}
+        />
+
+        {/* Main Game Area */}
+        <main className="pt-24 pb-8 px-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Power-ups */}
+            <PowerUpSystem
+              powerUps={powerUps}
+              onUsePowerUp={usePowerUp}
+              disabled={gameState !== 'playing' || isProcessing}
+            />
+
+            {/* Game Board */}
+            <GameBoard
+              cards={cards}
+              onCardSelect={handleCardSelect}
+              gameState={gameState}
+              difficulty={difficulty}
+            />
+
+            {/* Achievements */}
+            <AchievementSystem achievements={achievements} />
           </div>
-        </div>
-      ) : (
-        <div className="text-center text-white mt-20">
-          <h1 className="text-5xl font-bold mb-5">You Won!</h1>
-          <p className="text-xl mb-2">Time: {formatTime(time)}</p>
-          <p className="text-xl mb-5">Moves: {moves}</p>
-          <button
-            onClick={resetGame}
-            className="
-              px-4 py-2 mt-5 w-[180px] h-[60px] text-[25px]
-              bg-[#64042f] text-[rgb(223,223,223)] border-none
-              rounded-[6px] cursor-pointer
-              transition-colors duration-300 ease-in-out
-              hover:bg-[#06054973]
-            "
-          >
-            Play Again
-          </button>
-        </div>
-      )}
+        </main>
 
-      <StatsModal 
-        isOpen={showStats} 
-        onClose={() => setShowStats(false)} 
-        bestScores={bestScores}
-        moves={moves}
-        time={time}
-      />
+        {/* Modals */}
+        <StatsModal
+          isOpen={showStats}
+          onClose={() => setShowStats(false)}
+          bestScores={bestScores}
+          moves={moves}
+          time={time}
+          score={score}
+          achievements={achievements}
+        />
 
-      <SettingsModal 
-        isOpen={showSettings} 
-        onClose={() => setShowSettings(false)}
-        difficulty={difficulty}
-        onDifficultyChange={setDifficulty}
-        onSoundToggle={() => setSoundEnabled(!soundEnabled)}
-        soundEnabled={soundEnabled}
-      />
-      
-      <style>{`
-        @keyframes shake {
-          0% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          50% { transform: translateX(5px); }
-          75% { transform: translateX(-5px); }
-          100% { transform: translateX(0); }
-        }
-        
-        .rotate-y-0 {
-          transform: rotateY(0deg);
-        }
-        
-        .rotate-y-180 {
-          transform: rotateY(180deg);
-        }
-        
-        .rotate-y-\[-180deg\] {
-          transform: rotateY(-180deg);
-        }
-      `}</style>
+        <SettingsModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+        />
+
+        <WinModal
+          isOpen={showWinModal}
+          onClose={() => setShowWinModal(false)}
+          onNewGame={resetGame}
+          moves={moves}
+          time={time}
+          score={score}
+          difficulty={difficulty}
+          achievements={achievements.filter(a => a.unlocked)}
+        />
+      </div>
     </div>
   );
 };

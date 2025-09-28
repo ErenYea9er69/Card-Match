@@ -1,4 +1,5 @@
 import React from 'react';
+import type { GameState } from './types/gameTypes';
 
 interface HeaderProps {
   onNewGame: () => void;
@@ -6,7 +7,9 @@ interface HeaderProps {
   onSettingsClick?: () => void;
   moves: number;
   time: number;
+  score: number;
   bestScore?: number;
+  gameState: GameState;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -15,7 +18,9 @@ const Header: React.FC<HeaderProps> = ({
   onSettingsClick,
   moves,
   time,
-  bestScore
+  score,
+  bestScore,
+  gameState
 }) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -23,11 +28,15 @@ const Header: React.FC<HeaderProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formatScore = (points: number) => {
+    return points.toLocaleString();
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 flex justify-center animate-fadeInDown">
       <div
         className="
-          flex items-center justify-between text-white w-full max-w-2xl
+          flex items-center justify-between text-white w-full max-w-6xl
           bg-gradient-to-r from-purple-800/80 via-purple-700/80 to-indigo-800/80
           backdrop-blur-md border border-purple-400/40
           rounded-full shadow-2xl px-6 py-3
@@ -43,130 +52,107 @@ const Header: React.FC<HeaderProps> = ({
       >
         {/* Game Title */}
         <div className="flex items-center gap-3 transform transition-all duration-300 hover:scale-105">
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-purple-600/80 to-indigo-700/80 backdrop-blur-md border border-purple-300/40 flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:rotate-12 hover:scale-110 shadow-lg">
-            <video
-              src="/vd/logo.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="h-6 w-6 object-cover rounded-full"
-            >
-              Your browser does not support the video tag.
-            </video>
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-600/80 to-indigo-700/80 backdrop-blur-md border border-purple-300/40 flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:rotate-12 hover:scale-110 shadow-lg">
+            <div className="text-2xl animate-spin-slow">🎮</div>
           </div>
-          <span className="font-semibold text-xl bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent transform transition-all duration-300 hover:scale-105">
-            MemoCard
+          <span className="font-bold text-2xl bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent transform transition-all duration-300 hover:scale-105">
+            MemoCard Pro
           </span>
         </div>
 
         {/* Game Stats */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+            <div className="bg-white/20 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
               <span className="text-purple-200">Time: </span>
-              <span className="font-bold">{formatTime(time)}</span>
+              <span className="font-bold text-white">{formatTime(time)}</span>
             </div>
-            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+            <div className="bg-white/20 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
               <span className="text-purple-200">Moves: </span>
-              <span className="font-bold">{moves}</span>
+              <span className="font-bold text-white">{moves}</span>
             </div>
+            <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-yellow-300/30">
+              <span className="text-yellow-200">Score: </span>
+              <span className="font-bold text-yellow-100">{formatScore(score)}</span>
+            </div>
+            {bestScore && (
+              <div className="bg-gradient-to-r from-green-400/20 to-emerald-400/20 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-green-300/30">
+                <span className="text-green-200">Best: </span>
+                <span className="font-bold text-green-100">{bestScore} moves</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={onStatsClick || (() => alert('Stats feature coming soon!'))}
             className="
-              px-4 py-2 text-sm font-medium text-purple-700
+              px-5 py-2.5 text-sm font-medium text-purple-700
               rounded-full cursor-pointer transition-all duration-300
               bg-gradient-to-r from-white to-purple-50
               hover:from-purple-50 hover:to-white hover:scale-105
               border border-purple-200/50 shadow-md hover:shadow-lg
-              transform hover:-translate-y-0.5
+              transform hover:-translate-y-0.5 active:scale-95
+              flex items-center gap-2
             "
           >
-            Stats
+            <span className="text-lg">📊</span>
+            <span>Stats</span>
           </button>
+          
           <button
             onClick={onSettingsClick || (() => alert('Settings feature coming soon!'))}
             className="
-              px-4 py-2 text-sm font-medium text-purple-700
+              px-5 py-2.5 text-sm font-medium text-purple-700
               rounded-full cursor-pointer transition-all duration-300
               bg-gradient-to-r from-white to-purple-50
               hover:from-purple-50 hover:to-white hover:scale-105
               border border-purple-200/50 shadow-md hover:shadow-lg
-              transform hover:-translate-y-0.5
+              transform hover:-translate-y-0.5 active:scale-95
+              flex items-center gap-2
             "
           >
-            Settings
+            <span className="text-lg">⚙️</span>
+            <span>Settings</span>
           </button>
+          
           <button
             onClick={onNewGame}
+            disabled={gameState === 'playing'}
             className="
-              px-4 py-2 text-sm font-medium text-purple-700
+              px-6 py-2.5 text-sm font-bold text-white
               rounded-full cursor-pointer transition-all duration-300
-              bg-gradient-to-r from-white to-purple-50
-              hover:from-purple-50 hover:to-white hover:scale-110
-              border border-purple-200/50 shadow-md hover:shadow-lg
-              flex items-center gap-1
-              transform hover:-translate-y-1 hover:rotate-1
+              bg-gradient-to-r from-green-500 to-emerald-500
+              hover:from-green-600 hover:to-emerald-600 hover:scale-105
+              border border-green-400/50 shadow-lg hover:shadow-xl
+              transform hover:-translate-y-0.5 active:scale-95
+              flex items-center gap-2
+              disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:hover:scale-100 disabled:hover:-translate-y-0
             "
           >
-            <span className="text-lg transform transition-transform duration-300 hover:rotate-180">+</span> 
-            New Game
+            <span className="text-lg">🔄</span>
+            <span>{gameState === 'playing' ? 'Playing...' : 'New Game'}</span>
           </button>
         </div>
-      </div>
 
-      <style>{`
-        @keyframes gradientShift {
-          0% { 
-            background-position: 0% 50%;
-          }
-          25% { 
-            background-position: 100% 0%;
-          }
-          50% { 
-            background-position: 100% 100%;
-          }
-          75% { 
-            background-position: 0% 100%;
-          }
-          100% { 
-            background-position: 0% 50%;
-          }
-        }
-        
-        @keyframes fadeInDown {
-          0% { 
-            opacity: 0; 
-            transform: translateY(-30px); 
-          }
-          100% { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-        
-        .animate-fadeInDown {
-          animation: fadeInDown 1s ease-out;
-        }
-        
-        .animate-pulse-subtle {
-          animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse {
-          0%, 100% { 
-            opacity: 1; 
-          }
-          50% { 
-            opacity: 0.95; 
-          }
-        }
-      `}</style>
+        {/* Game State Indicator */}
+        <div className="flex items-center gap-2">
+          <div className={`
+            w-3 h-3 rounded-full animate-pulse
+            ${gameState === 'playing' ? 'bg-green-400' : 
+              gameState === 'won' ? 'bg-yellow-400' : 
+              'bg-gray-400'}
+          `}></div>
+          <span className="text-sm font-medium capitalize">
+            {gameState === 'playing' ? 'Playing' : 
+             gameState === 'won' ? 'Won!' : 
+             'Ready'}
+          </span>
+        </div>
+      </div>
     </header>
   );
 };
