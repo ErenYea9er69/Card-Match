@@ -388,10 +388,10 @@ const App: React.FC = () => {
         />
 
         {/* Main Game Area */}
-        <main className="pt-24 pb-8 px-4">
-          <div className="w-full max-w-8xl mx-auto">
-            {/* Power-ups - Now above the game board and centered */}
-            <div className="mb-8 flex justify-center">
+        <main className="pt-20 pb-4 px-4 min-h-screen flex flex-col">
+          <div className="w-full max-w-8xl mx-auto flex-1 flex flex-col">
+            {/* Power-ups - Compact and centered */}
+            <div className="mb-4 flex justify-center">
               <PowerUpSystem
                 powerUps={powerUps}
                 onUsePowerUp={usePowerUp}
@@ -399,8 +399,8 @@ const App: React.FC = () => {
               />
             </div>
 
-            {/* Game Board - Now takes full width and is much larger */}
-            <div className="w-full flex justify-center mb-16">
+            {/* Game Board - Takes remaining space and is always visible */}
+            <div className="flex-1 flex justify-center items-center min-h-0">
               <GameBoard
                 cards={cards}
                 onCardSelect={handleCardSelect}
@@ -409,8 +409,8 @@ const App: React.FC = () => {
               />
             </div>
 
-            {/* Achievements - Now below the game board, user needs to scroll down */}
-            <div className="w-full max-w-6xl mx-auto">
+            {/* Achievements - Compact footer */}
+            <div className="w-full max-w-6xl mx-auto mt-4">
               <AchievementSystem achievements={achievements} />
             </div>
           </div>
