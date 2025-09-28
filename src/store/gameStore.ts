@@ -8,9 +8,9 @@ import type {
   PowerUp, 
   BestScores,
   Difficulty,
-  Theme,
-  GAME_CONFIG 
+  Theme
 } from '../types/gameTypes';
+import { GAME_CONFIG } from '../types/gameTypes';
 
 export const useGameStore = create<GameStore>()(
   persist(
