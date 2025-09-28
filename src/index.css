@@ -328,8 +328,9 @@
   }
 
   .card-container.hint {
-    @apply ring-4 ring-yellow-400 ring-opacity-75;
+    @apply ring-4 ring-yellow-400;
     animation: pulse 1s infinite;
+    --tw-ring-opacity: 0.75;
   }
 
   .card-inner {
