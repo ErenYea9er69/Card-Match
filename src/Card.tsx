@@ -26,13 +26,101 @@ const Card: React.FC<CardProps> = ({ card, onClick, disabled, index }) => {
   };
 
   const getCardContent = () => {
-    // Card back
+    // Card back - New unique geometric pattern design
     if (!card.isFlipped && !card.isMatched) {
       return (
-        <div className="card-back">
-          <div className="card-pattern">
-            <div className="pattern-dots"></div>
+        <div className="card-back relative w-full h-full rounded-xl overflow-hidden">
+          {/* Multi-layered geometric background */}
+          <div 
+            className="absolute inset-0 w-full h-full"
+            style={{ 
+              background: `
+                radial-gradient(circle at 25% 25%, rgba(147, 51, 234, 0.8) 0%, transparent 35%),
+                radial-gradient(circle at 75% 25%, rgba(99, 102, 241, 0.8) 0%, transparent 35%),
+                radial-gradient(circle at 25% 75%, rgba(168, 85, 247, 0.8) 0%, transparent 35%),
+                radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.8) 0%, transparent 35%),
+                linear-gradient(45deg, 
+                  rgba(147, 51, 234, 0.1) 0%, 
+                  rgba(99, 102, 241, 0.1) 25%, 
+                  rgba(168, 85, 247, 0.1) 50%, 
+                  rgba(139, 92, 246, 0.1) 75%, 
+                  rgba(147, 51, 234, 0.1) 100%
+                ),
+                repeating-conic-gradient(
+                  from 0deg at 50% 50%,
+                  rgba(255, 255, 255, 0.1) 0deg,
+                  transparent 15deg,
+                  rgba(255, 255, 255, 0.1) 30deg,
+                  transparent 45deg
+                )
+              `,
+              backgroundSize: '80px 80px, 80px 80px, 80px 80px, 80px 80px, 100% 100%, 40px 40px',
+            }}
+          ></div>
+          
+          {/* Border gradient */}
+          <div 
+            className="absolute inset-0 rounded-xl"
+            style={{
+              border: '3px solid',
+              borderImage: 'linear-gradient(45deg, #9333ea, #6366f1, #a855f7, #8b5cf6) 1',
+              boxShadow: `
+                0 0 20px rgba(147, 51, 234, 0.3),
+                inset 0 0 20px rgba(255, 255, 255, 0.1),
+                0 8px 32px rgba(0, 0, 0, 0.3)
+              `
+            }}
+          ></div>
+
+          {/* Central ornamental design */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative w-16 h-16">
+              {/* Outer spinning ring */}
+              <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-spin" style={{animationDuration: '8s'}}></div>
+              {/* Inner counter-spinning ring */}
+              <div className="absolute inset-2 rounded-full border-2 border-purple-300/50 animate-spin" style={{animationDuration: '6s', animationDirection: 'reverse'}}></div>
+              {/* Center diamond */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-6 h-6 bg-gradient-to-br from-white/40 to-purple-200/40 rotate-45 rounded-sm shadow-inner"></div>
+              </div>
+              {/* Corner dots with staggered pulse */}
+              <div className="absolute top-1 left-1 w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+              <div className="absolute top-1 right-1 w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+              <div className="absolute bottom-1 left-1 w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+              <div className="absolute bottom-1 right-1 w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+            </div>
           </div>
+          
+          {/* Corner ornaments */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-l-2 border-t-2 border-white/40"></div>
+          <div className="absolute top-2 right-2 w-3 h-3 border-r-2 border-t-2 border-white/40"></div>
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-l-2 border-b-2 border-white/40"></div>
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-r-2 border-b-2 border-white/40"></div>
+          
+          {/* Subtle crosshatch pattern overlay */}
+          <div 
+            className="absolute inset-0 opacity-20 rounded-xl" 
+            style={{
+              backgroundImage: `
+                repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 10px,
+                  rgba(255, 255, 255, 0.1) 10px,
+                  rgba(255, 255, 255, 0.1) 11px
+                ),
+                repeating-linear-gradient(
+                  -45deg,
+                  transparent,
+                  transparent 10px,
+                  rgba(255, 255, 255, 0.1) 10px,
+                  rgba(255, 255, 255, 0.1) 11px
+                )
+              `
+            }}
+          ></div>
+
+          {/* Original card shine effect */}
           <div className="card-shine"></div>
         </div>
       );
@@ -57,7 +145,7 @@ const Card: React.FC<CardProps> = ({ card, onClick, disabled, index }) => {
     const emojis = [
       '🎮', '🎯', '🎨', '🎭', '🎪', '🎬', '🎤', '🎧',
       '🎸', '🎺', '🎻', '🎹', '🎲', '🎳', '🎯', '🎱',
-      '🏀', '⚽', '🏈', '⚾', '🎾', '🏐', '🏓', '🏸'
+      '🏀', '⚽', '🏈', '⚾', '🎾', '🍕', '🍔', '🍸'
     ];
     return emojis[(id - 1) % emojis.length];
   };
