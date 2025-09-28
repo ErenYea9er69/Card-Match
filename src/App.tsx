@@ -53,7 +53,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (gameState === 'playing' && !gameTimerRef.current) {
       gameTimerRef.current = window.setInterval(() => {
-        setTime(prev => prev + 1);
+        setTime((prev: number) => prev + 1);
       }, 1000);
     } else if (gameState !== 'playing' && gameTimerRef.current) {
       clearInterval(gameTimerRef.current);
@@ -115,7 +115,7 @@ const App: React.FC = () => {
     }
 
     // Flip the card
-    const updatedCards = cards.map(c => 
+    const updatedCards = cards.map((c: Card) => 
       c.id === card.id ? { ...c, isFlipped: true } : c
     );
     setCards(updatedCards);
@@ -132,7 +132,7 @@ const App: React.FC = () => {
     // Check for match when two cards are selected
     if (newSelectedCards.length === 2) {
       setIsProcessing(true);
-      setMoves(prev => prev + 1);
+      setMoves((prev: number) => prev + 1);
 
       const [firstCard, secondCard] = newSelectedCards;
 
@@ -150,7 +150,7 @@ const App: React.FC = () => {
 
   // Handle matching cards
   const handleMatch = useCallback((updatedCards: Card[], firstCard: Card, secondCard: Card) => {
-    const matchedCards = updatedCards.map(c => 
+    const matchedCards = updatedCards.map((c: Card) => 
       c.id === firstCard.id || c.id === secondCard.id 
         ? { ...c, isMatched: true, isFlipped: true }
         : c
@@ -165,7 +165,7 @@ const App: React.FC = () => {
     
     // Calculate and add score
     const matchScore = calculateScore('match', difficulty, time, moves);
-    setScore(prev => prev + matchScore);
+    setScore((prev: number) => prev + matchScore);
     
     // Play match sound
     if (soundEnabled) {
@@ -184,7 +184,7 @@ const App: React.FC = () => {
 
   // Handle mismatching cards
   const handleMismatch = useCallback((updatedCards: Card[], firstCard: Card, secondCard: Card) => {
-    const resetCards = updatedCards.map(c => 
+    const resetCards = updatedCards.map((c: Card) => 
       c.id === firstCard.id || c.id === secondCard.id 
         ? { ...c, isFlipped: false }
         : c
@@ -228,7 +228,7 @@ const App: React.FC = () => {
     const newAchievements: Achievement[] = [];
     
     // First match achievement
-    if (currentPairs === 1 && !achievements.find(a => a.id === 'first_match')) {
+    if (currentPairs === 1 && !achievements.find((a: Achievement) => a.id === 'first_match')) {
       newAchievements.push({
         id: 'first_match',
         title: 'First Match!',
@@ -239,7 +239,7 @@ const App: React.FC = () => {
     }
     
     // Speed achievements
-    if (currentTime <= 30 && currentPairs >= getTotalPairs(difficulty) && !achievements.find(a => a.id === 'speed_demon')) {
+    if (currentTime <= 30 && currentPairs >= getTotalPairs(difficulty) && !achievements.find((a: Achievement) => a.id === 'speed_demon')) {
       newAchievements.push({
         id: 'speed_demon',
         title: 'Speed Demon!',
@@ -250,7 +250,7 @@ const App: React.FC = () => {
     }
     
     // Perfect game achievement
-    if (currentMoves === getTotalPairs(difficulty) && !achievements.find(a => a.id === 'perfect_game')) {
+    if (currentMoves === getTotalPairs(difficulty) && !achievements.find((a: Achievement) => a.id === 'perfect_game')) {
       newAchievements.push({
         id: 'perfect_game',
         title: 'Perfect Game!',
@@ -280,11 +280,11 @@ const App: React.FC = () => {
 
   // Use power-up
   const usePowerUp = useCallback((powerUpId: string) => {
-    const powerUp = powerUps.find(p => p.id === powerUpId && p.uses > 0);
+    const powerUp = powerUps.find((p: any) => p.id === powerUpId && p.uses > 0);
     if (!powerUp || isProcessing) return;
 
     // Decrease uses
-    setPowerUps(powerUps.map(p => 
+    setPowerUps(powerUps.map((p: any) => 
       p.id === powerUpId ? { ...p, uses: p.uses - 1 } : p
     ));
 
@@ -292,10 +292,10 @@ const App: React.FC = () => {
     switch (powerUpId) {
       case 'reveal':
         // Reveal all cards briefly
-        const revealedCards = cards.map(c => ({ ...c, isFlipped: true }));
+        const revealedCards = cards.map((c: Card) => ({ ...c, isFlipped: true }));
         setCards(revealedCards);
         setTimeout(() => {
-          const hiddenCards = cards.map(c => ({ 
+          const hiddenCards = cards.map((c: Card) => ({ 
             ...c, 
             isFlipped: c.isMatched ? true : false 
           }));
@@ -305,8 +305,8 @@ const App: React.FC = () => {
         
       case 'shuffle':
         // Shuffle unmatched cards
-        const unmatchedCards = cards.filter(c => !c.isMatched);
-        const matchedCards = cards.filter(c => c.isMatched);
+        const unmatchedCards = cards.filter((c: Card) => !c.isMatched);
+        const matchedCards = cards.filter((c: Card) => c.isMatched);
         const shuffledUnmatched = [...unmatchedCards].sort(() => Math.random() - 0.5);
         const newShuffledCards = [...matchedCards, ...shuffledUnmatched];
         setCards(newShuffledCards);
@@ -314,17 +314,17 @@ const App: React.FC = () => {
         
       case 'hint':
         // Highlight a matching pair
-        const unmatched = cards.filter(c => !c.isMatched && !c.isFlipped);
+        const unmatched = cards.filter((c: Card) => !c.isMatched && !c.isFlipped);
         if (unmatched.length >= 2) {
           const pairs: { [key: number]: Card[] } = {};
-          unmatched.forEach(card => {
+          unmatched.forEach((card: Card) => {
             if (!pairs[card.imageId]) pairs[card.imageId] = [];
             pairs[card.imageId].push(card);
           });
           
-          const matchingPair = Object.values(pairs).find(pair => pair.length === 2);
+          const matchingPair = Object.values(pairs).find((pair: Card[]) => pair.length === 2);
           if (matchingPair) {
-            const hintCards = cards.map(c => {
+            const hintCards = cards.map((c: Card) => {
               if (matchingPair.some((p: Card) => p.id === c.id)) {
                 return { ...c, isHint: true };
               }
@@ -332,7 +332,7 @@ const App: React.FC = () => {
             });
             setCards(hintCards);
             setTimeout(() => {
-              const clearHints = cards.map(c => ({ ...c, isHint: false }));
+              const clearHints = cards.map((c: Card) => ({ ...c, isHint: false }));
               setCards(clearHints);
             }, 3000);
           }
@@ -434,7 +434,7 @@ const App: React.FC = () => {
           time={time}
           score={score}
           difficulty={difficulty}
-          achievements={achievements.filter(a => a.unlocked)}
+          achievements={achievements.filter((a: Achievement) => a.unlocked)}
         />
       </div>
     </div>
