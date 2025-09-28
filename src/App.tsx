@@ -1,235 +1,317 @@
-import React from 'react';
-import { GameProvider, useGame } from './GameContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from './Header';
-import GameMenu from './GameMenu';
-import GameBoard from './GameBoard';
-import GameCompletion from './GameCompletion';
-import GameSettings from './GameSettings';
-import PauseOverlay from './PauseOverlay';
+import StatsModal from './StatsModal';
+import SettingsModal from './SettingsModal';
 
-// Main Game Component
-const GameContent: React.FC = () => {
-  const { state } = useGame();
-  const { gameState } = state;
+interface Card {
+  id: number;
+  imageId: number;
+  isFlipped: boolean;
+  isMatched: boolean;
+  isShaking: boolean;
+}
 
-  const renderGameContent = () => {
-    switch (gameState) {
-      case 'menu':
-        return <GameMenu />;
-      case 'playing':
-        return (
-          <div className="relative">
-            <GameBoard />
-          </div>
+const App: React.FC = () => {
+  const [cards, setCards] = useState<Card[]>([]);
+  const [cardOne, setCardOne] = useState<Card | null>(null);
+  const [cardTwo, setCardTwo] = useState<Card | null>(null);
+  const [disableDeck, setDisableDeck] = useState<boolean>(false);
+  const [matchedCards, setMatchedCards] = useState<number>(0);
+  const [showResetPage, setShowResetPage] = useState<boolean>(false);
+  const [moves, setMoves] = useState<number>(0);
+  const [time, setTime] = useState<number>(0);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+  const [bestScores, setBestScores] = useState<{ [key: number]: number }>({});
+  const [showStats, setShowStats] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+
+  // Timer effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isTimerRunning) {
+      timer = setInterval(() => {
+        setTime(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isTimerRunning]);
+
+  // Calculate number of card pairs based on difficulty
+  const getCardCount = useCallback((): number => {
+    switch (difficulty) {
+      case 'easy': return 6; // 6 pairs (12 cards)
+      case 'medium': return 8; // 8 pairs (16 cards)
+      case 'hard': return 10; // 10 pairs (20 cards)
+      default: return 8;
+    }
+  }, [difficulty]);
+
+  // Initialize and shuffle cards
+  const shuffleCards = useCallback((): void => {
+    setMatchedCards(0);
+    setCardOne(null);
+    setCardTwo(null);
+    setDisableDeck(false);
+    setMoves(0);
+    setTime(0);
+    setIsTimerRunning(false);
+    setShowResetPage(false);
+    
+    const cardCount = getCardCount();
+    
+    // Generate random image IDs
+    const availableImages = Array.from({ length: 23 }, (_, i) => i + 1);
+    const shuffledImages = availableImages.sort(() => Math.random() - 0.5);
+    const selectedImages = shuffledImages.slice(0, cardCount);
+    
+    // Create pairs and shuffle them
+    const cardPairs = [...selectedImages, ...selectedImages];
+    const shuffledPairs = cardPairs.sort(() => Math.random() - 0.5);
+    
+    const newCards: Card[] = shuffledPairs.map((imageId, index) => ({
+      id: index,
+      imageId,
+      isFlipped: false,
+      isMatched: false,
+      isShaking: false
+    }));
+    
+    setCards(newCards);
+  }, [getCardCount]);
+
+  // Handle card flip
+  const flipCard = (clickedCard: Card): void => {
+    if (disableDeck || clickedCard.isMatched || clickedCard.isFlipped) return;
+    
+    // Start timer on first move
+    if (!isTimerRunning) {
+      setIsTimerRunning(true);
+    }
+    
+    setCards(prevCards => 
+      prevCards.map(card => 
+        card.id === clickedCard.id 
+          ? { ...card, isFlipped: true }
+          : card
+      )
+    );
+
+    if (!cardOne) {
+      setCardOne(clickedCard);
+      return;
+    }
+
+    setCardTwo(clickedCard);
+    setDisableDeck(true);
+    setMoves(prev => prev + 1);
+    
+    // Check for match after state updates
+    setTimeout(() => {
+      if(cardOne) {
+        matchCards(cardOne, clickedCard);
+      }
+    }, 0);
+  };
+
+  // Match cards logic
+  const matchCards = (firstCard: Card, secondCard: Card): void => {
+    if (firstCard.imageId === secondCard.imageId) {
+      setMatchedCards(prev => prev + 1);
+      
+      setCards(prevCards => 
+        prevCards.map(card => 
+          card.id === firstCard.id || card.id === secondCard.id
+            ? { ...card, isMatched: true }
+            : card
+        )
+      );
+      
+      setCardOne(null);
+      setCardTwo(null);
+      setDisableDeck(false);
+      
+      // Check if all cards are matched
+      if (matchedCards + 1 === getCardCount()) {
+        setTimeout(() => {
+          setIsTimerRunning(false);
+          setShowResetPage(true);
+          // Update best score if needed
+          const currentLevel = getCardCount();
+          if (!bestScores[currentLevel] || moves + 1 < bestScores[currentLevel]) {
+            setBestScores(prev => ({
+              ...prev,
+              [currentLevel]: moves + 1
+            }));
+          }
+        }, 500);
+      }
+    } else {
+      // Show shake animation
+      setTimeout(() => {
+        setCards(prevCards => 
+          prevCards.map(card => 
+            card.id === firstCard.id || card.id === secondCard.id
+              ? { ...card, isShaking: true }
+              : card
+          )
         );
-      case 'paused':
-        return (
-          <div className="relative">
-            <GameBoard />
-            <PauseOverlay />
-          </div>
+      }, 300);
+
+      // Remove flip and shake after animation
+      setTimeout(() => {
+        setCards(prevCards => 
+          prevCards.map(card => 
+            card.id === firstCard.id || card.id === secondCard.id
+              ? { ...card, isFlipped: false, isShaking: false }
+              : card
+          )
         );
-      case 'completed':
-        return <GameCompletion />;
-      case 'settings':
-        return <GameSettings />;
-      default:
-        return <GameMenu />;
+        
+        setCardOne(null);
+        setCardTwo(null);
+        setDisableDeck(false);
+      }, 800);
     }
   };
 
+  // Reset game
+  const resetGame = (): void => {
+    shuffleCards();
+  };
+
+  // Initialize game on component mount
+  useEffect(() => {
+    shuffleCards();
+  }, [shuffleCards]);
+
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Animated background particles */}
-        <div className="absolute top-10 left-10 w-4 h-4 bg-purple-400/20 rounded-full animate-pulse"></div>
-        <div className="absolute top-32 right-20 w-6 h-6 bg-indigo-400/20 rounded-full animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-32 w-3 h-3 bg-purple-300/20 rounded-full animate-pulse delay-2000"></div>
-        <div className="absolute bottom-40 right-10 w-5 h-5 bg-indigo-300/20 rounded-full animate-pulse delay-3000"></div>
-        
-        {/* Gradient overlays */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-radial from-purple-600/10 to-transparent rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-radial from-indigo-600/10 to-transparent rounded-full blur-3xl"></div>
-      </div>
+    <div className="flex justify-center items-center min-h-screen bg-[rgb(36,2,21)]">
+      <Header 
+        onNewGame={resetGame} 
+        onStatsClick={() => setShowStats(true)}
+        onSettingsClick={() => setShowSettings(true)}
+        moves={moves} 
+        time={time}
+        bestScore={bestScores[getCardCount()]}
+      />
+      
+      {!showResetPage ? (
+        <div className="h-[700px] w-[700px] rounded-[10px] bg-[rgb(217,242,242)] p-[21px] mt-20">
+          <div className="h-full w-full flex flex-wrap justify-center gap-[10px]">
+            {cards.map((card) => (
+              <div
+                key={card.id}
+                className={`
+                  relative w-[150px] h-[150px] cursor-pointer
+                  transition-transform duration-[250ms] ease-linear
+                  [perspective:800px] [transform-style:preserve-3d]
+                  ${card.isShaking ? 'animate-[shake_0.35s_ease-in]' : ''}
+                `}
+                onClick={() => flipCard(card)}
+              >
+                {/* Front view */}
+                <div 
+                  className={`
+                    absolute w-full h-full [backface-visibility:hidden]
+                    transition-transform duration-[220ms] ease-linear
+                    select-none pointer-events-none
+                    ${card.isFlipped ? 'rotate-y-180' : ''}
+                  `}
+                >
+                  <img 
+                    src="/assets/img0.jpg" 
+                    alt="card-back"
+                    className="w-full h-full rounded-[10px]"
+                  />
+                </div>
+                
+                {/* Back view */}
+                <div 
+                  className={`
+                    absolute w-full h-full [backface-visibility:hidden]
+                    transition-transform duration-[220ms] ease-linear
+                    select-none pointer-events-none rotate-y-[-180deg]
+                    ${card.isFlipped ? 'rotate-y-0' : ''}
+                  `}
+                >
+                  <img 
+                    src={`/assets/img${card.imageId}.jpg`}
+                    alt="card-img"
+                    className="w-full h-full rounded-[10px]"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center text-white mt-20">
+          <h1 className="text-5xl font-bold mb-5">You Won!</h1>
+          <p className="text-xl mb-2">Time: {formatTime(time)}</p>
+          <p className="text-xl mb-5">Moves: {moves}</p>
+          <button
+            onClick={resetGame}
+            className="
+              px-4 py-2 mt-5 w-[180px] h-[60px] text-[25px]
+              bg-[#64042f] text-[rgb(223,223,223)] border-none
+              rounded-[6px] cursor-pointer
+              transition-colors duration-300 ease-in-out
+              hover:bg-[#06054973]
+            "
+          >
+            Play Again
+          </button>
+        </div>
+      )}
 
-      {/* Header - Show on all screens except menu */}
-      {gameState !== 'menu' && <Header />}
+      <StatsModal 
+        isOpen={showStats} 
+        onClose={() => setShowStats(false)} 
+        bestScores={bestScores}
+        moves={moves}
+        time={time}
+      />
 
-      {/* Main Content */}
-      <div 
-        className={`
-          transition-all duration-500 ease-in-out
-          ${gameState !== 'menu' ? 'pt-16 md:pt-20' : ''}
-        `}
-      >
-        {renderGameContent()}
-      </div>
-
-      {/* Global Styles */}
+      <SettingsModal 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)}
+        difficulty={difficulty}
+        onDifficultyChange={setDifficulty}
+        onSoundToggle={() => setSoundEnabled(!soundEnabled)}
+        soundEnabled={soundEnabled}
+      />
+      
       <style>{`
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+        @keyframes shake {
+          0% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          50% { transform: translateX(5px); }
+          75% { transform: translateX(-5px); }
+          100% { transform: translateX(0); }
         }
         
-        body {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-          background: #1e1b4b;
-          overflow-x: hidden;
+        .rotate-y-0 {
+          transform: rotateY(0deg);
         }
         
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-          width: 8px;
+        .rotate-y-180 {
+          transform: rotateY(180deg);
         }
         
-        ::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: rgba(139, 92, 246, 0.6);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: rgba(139, 92, 246, 0.8);
-        }
-        
-        /* Custom gradient backgrounds */
-        .bg-gradient-radial {
-          background-image: radial-gradient(circle, var(--tw-gradient-stops));
-        }
-        
-        /* Smooth transitions for all interactive elements */
-        button, a, input, select {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Focus styles for accessibility */
-        button:focus, a:focus, input:focus, select:focus {
-          outline: 2px solid rgba(139, 92, 246, 0.6);
-          outline-offset: 2px;
-        }
-        
-        /* Disable text selection for game elements */
-        .select-none {
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
-        }
-        
-        /* Custom animations */
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        
-        @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
-          50% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.6); }
-        }
-        
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-        
-        .animate-glow {
-          animation: glow 2s ease-in-out infinite;
-        }
-        
-        .animate-shimmer {
-          animation: shimmer 2s ease-in-out infinite;
-        }
-        
-        /* Loading states */
-        .loading {
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .loading::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-          transform: translateX(-100%);
-          animation: shimmer 1.5s ease-in-out infinite;
-        }
-        
-        /* Card flip 3D effects */
-        .card-3d {
-          transform-style: preserve-3d;
-          perspective: 1000px;
-        }
-        
-        /* Responsive design helpers */
-        @media (max-width: 640px) {
-          .responsive-text {
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
-          }
-          
-          .responsive-padding {
-            padding: clamp(1rem, 4vw, 2rem);
-          }
-        }
-        
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-          .bg-white\/10 {
-            background-color: rgba(255, 255, 255, 0.2);
-          }
-          
-          .border-white\/20 {
-            border-color: rgba(255, 255, 255, 0.4);
-          }
-        }
-        
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-        
-        /* Print styles */
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-        }
-        
-        /* Dark mode enhancements */
-        @media (prefers-color-scheme: dark) {
-          body {
-            background: #0f0e1a;
-          }
+        .rotate-y-\[-180deg\] {
+          transform: rotateY(-180deg);
         }
       `}</style>
     </div>
-  );
-};
-
-// Main App Component
-const App: React.FC = () => {
-  return (
-    <GameProvider>
-      <GameContent />
-    </GameProvider>
   );
 };
 
