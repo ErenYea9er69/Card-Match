@@ -366,7 +366,7 @@ const App: React.FC = () => {
   }, [stopBackgroundMusic]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-x-hidden">
       {/* Animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
@@ -389,24 +389,30 @@ const App: React.FC = () => {
 
         {/* Main Game Area */}
         <main className="pt-24 pb-8 px-4">
-          <div className="max-w-6xl mx-auto">
-            {/* Power-ups */}
-            <PowerUpSystem
-              powerUps={powerUps}
-              onUsePowerUp={usePowerUp}
-              disabled={gameState !== 'playing' || isProcessing}
-            />
+          <div className="w-full max-w-8xl mx-auto">
+            {/* Power-ups - Now above the game board and centered */}
+            <div className="mb-8 flex justify-center">
+              <PowerUpSystem
+                powerUps={powerUps}
+                onUsePowerUp={usePowerUp}
+                disabled={gameState !== 'playing' || isProcessing}
+              />
+            </div>
 
-            {/* Game Board */}
-            <GameBoard
-              cards={cards}
-              onCardSelect={handleCardSelect}
-              gameState={gameState}
-              difficulty={difficulty}
-            />
+            {/* Game Board - Now takes full width and is much larger */}
+            <div className="w-full flex justify-center mb-16">
+              <GameBoard
+                cards={cards}
+                onCardSelect={handleCardSelect}
+                gameState={gameState}
+                difficulty={difficulty}
+              />
+            </div>
 
-            {/* Achievements */}
-            <AchievementSystem achievements={achievements} />
+            {/* Achievements - Now below the game board, user needs to scroll down */}
+            <div className="w-full max-w-6xl mx-auto">
+              <AchievementSystem achievements={achievements} />
+            </div>
           </div>
         </main>
 

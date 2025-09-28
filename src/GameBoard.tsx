@@ -18,13 +18,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const getGridClass = () => {
     switch (difficulty) {
       case 'easy':
-        return 'grid-cols-4 max-w-lg';
+        return 'grid-cols-4 max-w-4xl gap-6'; // Made much larger
       case 'medium':
-        return 'grid-cols-4 max-w-xl';
+        return 'grid-cols-4 max-w-5xl gap-6'; // Made much larger
       case 'hard':
-        return 'grid-cols-6 max-w-4xl';
+        return 'grid-cols-6 max-w-7xl gap-6'; // Made much larger
       default:
-        return 'grid-cols-4 max-w-xl';
+        return 'grid-cols-4 max-w-5xl gap-6';
     }
   };
 
@@ -41,7 +41,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full">
       {/* Game Status */}
       {gameState === 'won' && (
         <div className="mb-8 text-center animate-bounce">
@@ -51,12 +51,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       )}
 
-      {/* Game Board */}
+      {/* Game Board - Made Much Larger */}
       <div className={`
-        grid ${getGridClass()} gap-4 p-6 
+        grid ${getGridClass()} p-8 w-full
         bg-white/10 backdrop-blur-sm rounded-2xl 
         border border-white/20 shadow-2xl
         animate-fadeInUp
+        min-h-[500px]
       `}>
         {cards.map((card, index) => (
           <Card
@@ -72,7 +73,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {/* Game Instructions */}
       {gameState === 'playing' && (
         <div className="mt-8 text-center animate-fadeIn">
-          <p className="text-purple-200 text-sm">
+          <p className="text-purple-200 text-lg">
             Find matching pairs by flipping cards two at a time!
           </p>
         </div>
