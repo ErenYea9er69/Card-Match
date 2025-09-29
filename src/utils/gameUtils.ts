@@ -75,8 +75,8 @@ export const generateCards = (difficulty: Difficulty): Card[] => {
   const config = GAME_CONFIG.difficulties[difficulty];
   const totalPairs = config.pairs;
   
-  // Generate random image IDs from 1 to 22
-  const availableImages = Array.from({ length: 22 }, (_, i) => i + 1);
+  // Generate random image IDs from 1 to 21
+  const availableImages = Array.from({ length: 21 }, (_, i) => i + 1);
   const shuffledImages = availableImages.sort(() => Math.random() - 0.5);
   const selectedImages = shuffledImages.slice(0, totalPairs);
   
