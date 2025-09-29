@@ -3,6 +3,7 @@ import type { GameState } from './types/gameTypes';
 
 interface HeaderProps {
   onNewGame: () => void;
+  onPauseResume: () => void;
   onStatsClick?: () => void;
   onSettingsClick?: () => void;
   moves: number;
@@ -13,7 +14,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ 
-  onNewGame, 
+  onNewGame,
+  onPauseResume,
   onStatsClick, 
   onSettingsClick,
   moves,
@@ -31,6 +33,8 @@ const Header: React.FC<HeaderProps> = ({
   const formatScore = (points: number) => {
     return points.toLocaleString();
   };
+
+  const isGameActive = gameState === 'playing' || gameState === 'paused';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 flex justify-center animate-fadeInDown">
@@ -125,6 +129,28 @@ const Header: React.FC<HeaderProps> = ({
             <span>Settings</span>
           </button>
           
+          {/* Pause/Resume Button - Only show when game is active */}
+          {isGameActive && (
+            <button
+              onClick={onPauseResume}
+              className={`
+                px-6 py-2.5 text-sm font-bold text-white
+                rounded-full cursor-pointer transition-all duration-300
+                ${gameState === 'playing'
+                  ? 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 border-red-400/50'
+                  : 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 border-yellow-400/50'
+                }
+                border shadow-lg hover:shadow-xl
+                transform hover:-translate-y-0.5 active:scale-95 hover:scale-105
+                flex items-center gap-2
+              `}
+            >
+              <span className="text-lg">{gameState === 'playing' ? '⏸️' : '▶️'}</span>
+              <span>{gameState === 'playing' ? 'Pause' : 'Resume'}</span>
+            </button>
+          )}
+          
+          {/* New Game Button */}
           <button
             onClick={onNewGame}
             className="
@@ -137,8 +163,8 @@ const Header: React.FC<HeaderProps> = ({
               flex items-center gap-2
             "
           >
-            <span className="text-lg">{gameState === 'playing' ? '⏹️' : '🔄'}</span>
-            <span>{gameState === 'playing' ? 'Stop Game' : 'New Game'}</span>
+            <span className="text-lg">🔄</span>
+            <span>New Game</span>
           </button>
         </div>
       </div>

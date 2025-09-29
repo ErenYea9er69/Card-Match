@@ -102,6 +102,15 @@ const App: React.FC = () => {
     }
   }, [difficulty, soundEnabled, playSound, setCards, setGameState, setMoves, setTime, setMatchedPairs, setScore, setSelectedCards]);
 
+  // Handle pause/resume game
+  const handlePauseResume = useCallback(() => {
+    if (gameState === 'playing') {
+      setGameState('paused');
+    } else if (gameState === 'paused') {
+      setGameState('playing');
+    }
+  }, [gameState, setGameState]);
+
   // Handle card selection
   const handleCardSelect = useCallback((card: Card) => {
     if (gameState !== 'playing' || isProcessing || card.isFlipped || card.isMatched) {
@@ -145,7 +154,7 @@ const App: React.FC = () => {
         }
       }, 1000);
     }
-  }, [cards, selectedCards, gameState, isProcessing, moves, soundEnabled, playSound, setCards, setSelectedCards, setMoves]);
+  }, [cards, selectedCards, gameState, isProcessing, moves, soundEnabled, playSound, setCards, setSelectedCards, setMoves, setGameState]);
 
   // Handle matching cards
   const handleMatch = useCallback((updatedCards: Card[], firstCard: Card, secondCard: Card) => {
@@ -227,7 +236,7 @@ const App: React.FC = () => {
     const newAchievements: Achievement[] = [];
     
     // First match achievement
-    if (currentPairs === 1 && !achievements.find((a: Achievement) => a.id === 'first_match')) {
+    if (currentPairs === 1 && !achievements.find((a: Achievement) => a.id === 'first_match')?.unlocked) {
       newAchievements.push({
         id: 'first_match',
         title: 'First Match!',
@@ -238,7 +247,7 @@ const App: React.FC = () => {
     }
     
     // Speed achievements
-    if (currentTime <= 30 && currentPairs >= getTotalPairs(difficulty) && !achievements.find((a: Achievement) => a.id === 'speed_demon')) {
+    if (currentTime <= 30 && currentPairs >= getTotalPairs(difficulty) && !achievements.find((a: Achievement) => a.id === 'speed_demon')?.unlocked) {
       newAchievements.push({
         id: 'speed_demon',
         title: 'Speed Demon!',
@@ -249,7 +258,7 @@ const App: React.FC = () => {
     }
     
     // Perfect game achievement
-    if (currentMoves === getTotalPairs(difficulty) && !achievements.find((a: Achievement) => a.id === 'perfect_game')) {
+    if (currentMoves === getTotalPairs(difficulty) && !achievements.find((a: Achievement) => a.id === 'perfect_game')?.unlocked) {
       newAchievements.push({
         id: 'perfect_game',
         title: 'Perfect Game!',
@@ -392,6 +401,7 @@ const App: React.FC = () => {
         {/* Header - More compact */}
         <Header
           onNewGame={initializeGame}
+          onPauseResume={handlePauseResume}
           onStatsClick={() => setShowStats(true)}
           onSettingsClick={() => setShowSettings(true)}
           moves={moves}
