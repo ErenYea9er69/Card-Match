@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from './Header';
 import StatsModal from './StatsModal';
@@ -11,8 +12,6 @@ import { useSoundStore } from './store/soundStore';
 import { generateCards, calculateScore } from './utils/gameUtils';
 
 import type { Card, Achievement } from './types/gameTypes';
-
-type GameState = 'ready' | 'playing' | 'won';
 
 const App: React.FC = () => {
   const { 

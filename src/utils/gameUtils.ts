@@ -1,3 +1,4 @@
+// src/utils/gameUtils.ts
 import type { Card, Difficulty } from '../types/gameTypes';
 
 export const GAME_CONFIG = {
@@ -206,7 +207,7 @@ export const getCardAnimationDelay = (index: number): string => {
   return `${index * 50}ms`;
 };
 
-export const getStaggeredAnimationClass = (index: number): string => {
+export const getStaggeredAnimationClass = (): string => {
   return `animate-fadeInUp`;
 };
 

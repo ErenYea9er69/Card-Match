@@ -1,3 +1,4 @@
+// src/store/soundStore.ts
 import { create } from 'zustand';
 
 interface SoundStore {
@@ -13,14 +14,6 @@ interface SoundStore {
   playBackgroundMusic: () => void;
   stopBackgroundMusic: () => void;
 }
-
-// Mock sound system - in a real app, you'd use Web Audio API or a library like Howler.js
-const createMockAudio = () => ({
-  play: () => {},
-  pause: () => {},
-  volume: 1,
-  loop: false
-});
 
 export const useSoundStore = create<SoundStore>((set, get) => ({
   musicVolume: 50,
