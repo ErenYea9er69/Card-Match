@@ -381,7 +381,7 @@ const App: React.FC = () => {
         style={{ zIndex: -1 }}
       />
 
-      {/* Animated background elements (optional - you can remove if they interfere with the image) */}
+      {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
         <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
@@ -389,7 +389,7 @@ const App: React.FC = () => {
       </div>
 
       <div className="relative z-10">
-        {/* Header */}
+        {/* Header - More compact */}
         <Header
           onNewGame={initializeGame}
           onStatsClick={() => setShowStats(true)}
@@ -401,11 +401,11 @@ const App: React.FC = () => {
           gameState={gameState}
         />
 
-        {/* Main Game Area */}
-        <main className="pt-20 pb-4 px-4 min-h-screen flex flex-col">
-          <div className="w-full max-w-8xl mx-auto flex-1 flex flex-col">
-            {/* Power-ups - Compact and centered */}
-            <div className="mb-4 flex justify-center">
+        {/* Main Game Area - Tighter spacing */}
+        <main className="pt-16 pb-2 px-4 min-h-screen flex flex-col">
+          <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col">
+            {/* Power-ups - More compact */}
+            <div className="mb-2 flex justify-center">
               <PowerUpSystem
                 powerUps={powerUps}
                 onUsePowerUp={usePowerUp}
@@ -413,8 +413,8 @@ const App: React.FC = () => {
               />
             </div>
 
-            {/* Game Board - Takes remaining space and is always visible */}
-            <div className="flex-1 flex justify-center items-center min-h-0">
+            {/* Game Board - Scaled down */}
+            <div className="flex-1 flex justify-center items-center min-h-0 scale-75 origin-top">
               <GameBoard
                 cards={cards}
                 onCardSelect={handleCardSelect}
@@ -423,8 +423,8 @@ const App: React.FC = () => {
               />
             </div>
 
-            {/* Achievements - Compact footer */}
-            <div className="w-full max-w-6xl mx-auto mt-4">
+            {/* Achievements - More compact */}
+            <div className="w-full max-w-5xl mx-auto mt-2 scale-90 origin-bottom">
               <AchievementSystem achievements={achievements} />
             </div>
           </div>

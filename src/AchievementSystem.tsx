@@ -49,68 +49,68 @@ const AchievementSystem: React.FC<AchievementSystemProps> = ({ achievements }) =
         </div>
       )}
 
-      {/* Achievement Progress */}
-      <div className="mt-8 animate-fadeInUp">
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <span className="text-2xl">🏆</span>
+      {/* Achievement Progress - More compact */}
+      <div className="mt-4 animate-fadeInUp">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <span className="text-xl">🏆</span>
               Achievements
             </h3>
             <div className="text-right">
-              <div className="text-2xl font-bold text-yellow-400">
+              <div className="text-xl font-bold text-yellow-400">
                 {unlockedAchievements.length}/{totalAchievements}
               </div>
-              <div className="text-purple-200 text-sm">
+              <div className="text-purple-200 text-xs">
                 {completionPercentage.toFixed(0)}% Complete
               </div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-white/20 rounded-full h-3 mb-6 overflow-hidden">
+          <div className="w-full bg-white/20 rounded-full h-2 mb-4 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${completionPercentage}%` }}
             ></div>
           </div>
 
-          {/* Achievement Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Achievement Grid - Smaller items */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {achievements.map((achievement) => (
               <div
                 key={achievement.id}
                 className={`
-                  p-4 rounded-xl transition-all duration-300
+                  p-2 rounded-lg transition-all duration-300 text-sm
                   ${achievement.unlocked
                     ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/30 hover:scale-105'
                     : 'bg-white/5 border border-white/10 opacity-60'
                   }
                 `}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <div className={`
-                    text-3xl transition-transform duration-300
+                    text-xl transition-transform duration-300
                     ${achievement.unlocked ? 'animate-bounce' : 'grayscale'}
                   `}>
                     {achievement.icon}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <h4 className={`
-                      font-bold mb-1
+                      font-bold text-xs mb-0.5 truncate
                       ${achievement.unlocked ? 'text-yellow-400' : 'text-gray-400'}
                     `}>
                       {achievement.title}
                     </h4>
                     <p className={`
-                      text-sm
+                      text-xs line-clamp-1
                       ${achievement.unlocked ? 'text-purple-200' : 'text-gray-500'}
                     `}>
                       {achievement.description}
                     </p>
                   </div>
                   {achievement.unlocked && (
-                    <div className="text-green-400 text-xl animate-pulse">
+                    <div className="text-green-400 text-sm animate-pulse">
                       ✓
                     </div>
                   )}
@@ -121,8 +121,8 @@ const AchievementSystem: React.FC<AchievementSystemProps> = ({ achievements }) =
 
           {/* Motivational Message */}
           {completionPercentage < 100 && (
-            <div className="mt-6 text-center">
-              <p className="text-purple-200 text-sm">
+            <div className="mt-3 text-center">
+              <p className="text-purple-200 text-xs">
                 {completionPercentage === 0 
                   ? "Start playing to unlock your first achievement!"
                   : `Keep playing to unlock more achievements and rewards!`}

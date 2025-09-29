@@ -37,15 +37,15 @@ const PowerUpSystem: React.FC<PowerUpSystemProps> = ({
   if (powerUps.length === 0) return null;
 
   return (
-    <div className="mb-8 animate-fadeInDown">
-      <div className="flex items-center justify-center gap-4 mb-4">
-        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-          <span className="text-2xl">⚡</span>
+    <div className="mb-4 animate-fadeInDown">
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <h3 className="text-lg font-bold text-white flex items-center gap-1">
+          <span className="text-xl">⚡</span>
           Power-ups
         </h3>
       </div>
       
-      <div className="flex justify-center gap-4 flex-wrap">
+      <div className="flex justify-center gap-2 flex-wrap">
         {powerUps.map((powerUp) => (
           <button
             key={powerUp.id}
@@ -53,7 +53,7 @@ const PowerUpSystem: React.FC<PowerUpSystemProps> = ({
             disabled={disabled || powerUp.uses <= 0}
             className={`
               relative group
-              p-4 rounded-xl transition-all duration-300
+              p-3 rounded-xl transition-all duration-300
               ${powerUp.uses > 0 && !disabled
                 ? 'bg-gradient-to-br from-purple-600/80 to-indigo-600/80 hover:from-purple-500 hover:to-indigo-500 hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl border border-purple-400/50'
                 : 'bg-gray-600/50 cursor-not-allowed opacity-50 border border-gray-500/30'
@@ -61,12 +61,12 @@ const PowerUpSystem: React.FC<PowerUpSystemProps> = ({
             `}
           >
             {/* Power-up Icon */}
-            <div className="text-3xl mb-2 group-hover:animate-bounce">
+            <div className="text-2xl mb-1 group-hover:animate-bounce">
               {getPowerUpIcon(powerUp.type)}
             </div>
             
             {/* Power-up Name */}
-            <div className="text-white font-bold text-sm mb-1">
+            <div className="text-white font-bold text-xs mb-0.5">
               {powerUp.name}
             </div>
             
@@ -86,7 +86,7 @@ const PowerUpSystem: React.FC<PowerUpSystemProps> = ({
             {/* Cooldown overlay */}
             {powerUp.cooldown && powerUp.cooldown > 0 && (
               <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold">{powerUp.cooldown}s</span>
+                <span className="text-white font-bold text-sm">{powerUp.cooldown}s</span>
               </div>
             )}
           </button>
