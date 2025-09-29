@@ -75,8 +75,8 @@ export const generateCards = (difficulty: Difficulty): Card[] => {
   const config = GAME_CONFIG.difficulties[difficulty];
   const totalPairs = config.pairs;
   
-  // Generate random image IDs
-  const availableImages = Array.from({ length: 24 }, (_, i) => i + 1);
+  // Generate random image IDs from 1 to 22
+  const availableImages = Array.from({ length: 22 }, (_, i) => i + 1);
   const shuffledImages = availableImages.sort(() => Math.random() - 0.5);
   const selectedImages = shuffledImages.slice(0, totalPairs);
   
@@ -154,16 +154,8 @@ export const formatScore = (score: number): string => {
   return score.toLocaleString();
 };
 
-export const getEmojiForId = (id: number): string => {
-  const emojis = [
-    '🎮', '🎯', '🎨', '🎭', '🎪', '🎬', '🎤', '🎧',
-    '🎸', '🎺', '🎻', '🎹', '🎲', '🎳', '🎯', '🎱',
-    '🏀', '⚽', '🏈', '⚾', '🎾', '🏐', '🏓', '🏸',
-    '🚀', '🛸', '🌟', '💫', '⭐', '🌙', '☀️', '🌈',
-    '🦄', '🐉', '🐲', '🦁', '🐯', '🐻', '🐼', '🦊',
-    '🍕', '🍔', '🍟', '🍦', '🍩', '🍪', '🎂', '🧁'
-  ];
-  return emojis[(id - 1) % emojis.length];
+export const getImagePathForId = (id: number): string => {
+  return `/assets/img${id}.jpg`;
 };
 
 export const getGridClass = (difficulty: Difficulty): string => {

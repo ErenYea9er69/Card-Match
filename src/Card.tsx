@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Card as CardType } from './types/gameTypes';
+import { getImagePathForId } from './utils/gameUtils';
 
 interface CardProps {
   card: CardType;
@@ -126,28 +127,24 @@ const Card: React.FC<CardProps> = ({ card, onClick, disabled, index }) => {
       );
     }
 
-    // Card front (matched or flipped)
+    // Card front (matched or flipped) - Show image
     return (
-      <div className="card-front">
-        <div className="card-image">
-          <span className="text-4xl">{getEmojiForId(card.imageId)}</span>
+      <div className="card-front relative w-full h-full rounded-xl overflow-hidden">
+        <div className="card-image w-full h-full">
+          <img 
+            src={getImagePathForId(card.imageId)} 
+            alt={`Card ${card.imageId}`}
+            className="w-full h-full object-cover rounded-xl"
+            loading="lazy"
+          />
         </div>
         {card.isMatched && (
-          <div className="match-effect">
-            <div className="sparkles">✨</div>
+          <div className="match-effect absolute inset-0 bg-green-500/20 flex items-center justify-center">
+            <div className="sparkles text-4xl animate-bounce">✨</div>
           </div>
         )}
       </div>
     );
-  };
-
-  const getEmojiForId = (id: number): string => {
-    const emojis = [
-      '🎮', '🎯', '🎨', '🎭', '🎪', '🎬', '🎤', '🎧',
-      '🎸', '🎺', '🎻', '🎹', '🎲', '🎳', '🎯', '🎱',
-      '🏀', '⚽', '🏈', '⚾', '🎾', '🍕', '🍔', '🍸'
-    ];
-    return emojis[(id - 1) % emojis.length];
   };
 
   return (
@@ -171,14 +168,14 @@ const Card: React.FC<CardProps> = ({ card, onClick, disabled, index }) => {
       
       {/* Hint indicator */}
       {card.isHint && (
-        <div className="hint-indicator animate-pulse">
+        <div className="hint-indicator animate-pulse absolute -top-2 -right-2 z-10 bg-yellow-400 rounded-full w-10 h-10 flex items-center justify-center shadow-lg">
           <span className="text-2xl">💡</span>
         </div>
       )}
       
       {/* Shake animation for wrong matches */}
       {card.isShaking && (
-        <div className="shake-animation">
+        <div className="shake-animation absolute -top-2 -right-2 z-10 bg-red-500 rounded-full w-10 h-10 flex items-center justify-center shadow-lg animate-shake">
           <span className="text-2xl">❌</span>
         </div>
       )}
