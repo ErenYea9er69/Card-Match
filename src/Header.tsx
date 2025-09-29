@@ -52,11 +52,18 @@ const Header: React.FC<HeaderProps> = ({
       >
         {/* Game Title */}
         <div className="flex items-center gap-3 transform transition-all duration-300 hover:scale-105">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-600/80 to-indigo-700/80 backdrop-blur-md border border-purple-300/40 flex items-center justify-center overflow-hidden transform transition-all duration-300 hover:rotate-12 hover:scale-110 shadow-lg">
-            <div className="text-2xl animate-spin-slow">🎮</div>
+          <div className="h-10 w-10 rounded-full overflow-hidden transform transition-all duration-300 hover:rotate-12 hover:scale-110 shadow-lg">
+            <video
+              src="/vd/logo.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
           </div>
           <span className="font-bold text-2xl bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent transform transition-all duration-300 hover:scale-105">
-            MemoCard Pro
+            MemoCard
           </span>
         </div>
 
@@ -85,7 +92,7 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
             onClick={onStatsClick || (() => alert('Stats feature coming soon!'))}
             className="
@@ -120,7 +127,6 @@ const Header: React.FC<HeaderProps> = ({
           
           <button
             onClick={onNewGame}
-            disabled={gameState === 'playing'}
             className="
               px-6 py-2.5 text-sm font-bold text-white
               rounded-full cursor-pointer transition-all duration-300
@@ -129,28 +135,11 @@ const Header: React.FC<HeaderProps> = ({
               border border-green-400/50 shadow-lg hover:shadow-xl
               transform hover:-translate-y-0.5 active:scale-95
               flex items-center gap-2
-              disabled:opacity-50 disabled:cursor-not-allowed
-              disabled:hover:scale-100 disabled:hover:-translate-y-0
             "
           >
-            <span className="text-lg">🔄</span>
-            <span>{gameState === 'playing' ? 'Playing...' : 'New Game'}</span>
+            <span className="text-lg">{gameState === 'playing' ? '⏹️' : '🔄'}</span>
+            <span>{gameState === 'playing' ? 'Stop Game' : 'New Game'}</span>
           </button>
-        </div>
-
-        {/* Game State Indicator */}
-        <div className="flex items-center gap-2">
-          <div className={`
-            w-3 h-3 rounded-full animate-pulse
-            ${gameState === 'playing' ? 'bg-green-400' : 
-              gameState === 'won' ? 'bg-yellow-400' : 
-              'bg-gray-400'}
-          `}></div>
-          <span className="text-sm font-medium capitalize">
-            {gameState === 'playing' ? 'Playing' : 
-             gameState === 'won' ? 'Won!' : 
-             'Ready'}
-          </span>
         </div>
       </div>
     </header>
